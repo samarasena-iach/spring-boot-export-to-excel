@@ -59,7 +59,7 @@ public class ExcelExportUtil {
 
         createCell(row, 0, "Customer Information", style);
 
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 8));
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 7));
         font.setFontHeightInPoints((short) 10);
 
         row = sheet.createRow(1);
