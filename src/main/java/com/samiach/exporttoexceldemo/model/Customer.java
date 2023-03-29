@@ -20,13 +20,16 @@ public class Customer {
 
     private String email;
 
+    private Integer status;
+
     @Embedded
     private Address address;
 
-    public Customer(String firstName, String lastName, String email, Address address) {
+    public Customer(String firstName, String lastName, String email, Integer status, Address address) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
+        this.status = status;
         this.address = address;
     }
 }

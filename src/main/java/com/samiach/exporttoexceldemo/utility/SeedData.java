@@ -19,10 +19,14 @@ public class SeedData {
     }
 
     private List<Customer> customers = Arrays.asList(
-            new Customer("Chasith", "Samarasena", "chasith.samarasena@gds.ey.com",
+            new Customer("Chasith", "Samarasena", "chasith.samarasena@gds.ey.com", 1,
                     new Address("Sri Lanka", "Western Province", "Mt.Lavinia", "Sylvester Rd")),
-            new Customer("Shalika", "Ranasinghe", "shalika@gmail.com",
-                    new Address("Sri Lanka", "Western Province", "Mt.Lavinia", "Sylvester Rd"))
+            new Customer("Shalika", "Ranasinghe", "shalika@gmail.com", 0,
+                    new Address("Sri Lanka", "Western Province", "Mt.Lavinia", "Sylvester Rd")),
+            new Customer("Dasan", "Samarasena", "dasan@gmail.com", 0,
+                                 new Address("Sri Lanka", "Western Province", "Panadura", "42, D.B.Perera Mw, Parattha Rd, Keselwattha")),
+            new Customer("Malithi Maneesha", "Undugoda", "malithi@gmail.com", 0,
+                    new Address("Australia", "Melbourne, Victoria", "Glen Waverly", "Block 3A, Park View Street"))
     );
 
     // @PostConstruct //Uncomment after first execution
