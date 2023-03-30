@@ -16,8 +16,11 @@ public class POC_Controller {
 
     private POC_Service pocService;
 
-    @GetMapping("/export-to-excel-poc-2")
+    @GetMapping("/export-to-excel")
     public void exportToExcel_ReleaseMilestoneSubmilestone(HttpServletResponse response) throws IOException {
+        // Refer to this blog:
+        // https://www.ablebits.com/office-addins-blog/dependent-cascading-dropdown-lists-excel/
+
         response.setContentType("application/octet-stream");
         String headerKey = "Content-Disposition";
         String headerValue = "attachment; filename=Release_Milestone_Submilestone.xlsx";
