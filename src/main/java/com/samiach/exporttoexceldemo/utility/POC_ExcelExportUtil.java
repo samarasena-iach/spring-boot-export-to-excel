@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Map;
 
 public class POC_ExcelExportUtil {
@@ -28,7 +27,7 @@ public class POC_ExcelExportUtil {
 
     public void exportDataToExcel(HttpServletResponse response) throws IOException {
         // HIDDEN SHEET (FOR LIST VALUES)
-        Sheet sheet = workbook.createSheet("ListSheet");
+        Sheet sheet = workbook.createSheet("DataSheet");
 
         Row row;
         Name namedRange;
@@ -61,7 +60,7 @@ public class POC_ExcelExportUtil {
             colLetter = CellReference.convertNumToColString(c);
             namedRange = workbook.createName();
             namedRange.setNameName(release);
-            reference = "ListSheet!$" + colLetter + "$2:$" + colLetter + "$" + r;
+            reference = "DataSheet!$" + colLetter + "$2:$" + colLetter + "$" + r;
             System.out.println("Reference 1 : " + reference);
             namedRange.setRefersToFormula(reference);
             c++;
@@ -71,7 +70,7 @@ public class POC_ExcelExportUtil {
         colLetter = CellReference.convertNumToColString((c - 1));
         namedRange = workbook.createName();
         namedRange.setNameName("Releases");
-        reference = "ListSheet!$A$1:$" + colLetter + "$1";
+        reference = "DataSheet!$A$1:$" + colLetter + "$1";
         System.out.println("\nReference 2 : " + reference);
         namedRange.setRefersToFormula(reference);
 
@@ -83,6 +82,7 @@ public class POC_ExcelExportUtil {
         sheet = workbook.createSheet("SMART PMWB");
         sheet.createRow(0).createCell(0).setCellValue("Release");
         sheet.getRow(0).createCell(1).setCellValue("Milestone");
+        sheet.getRow(0).createCell(2).setCellValue("Sub Milestone");
         sheet.setActiveCell(new CellAddress("A2"));
         sheet.autoSizeColumn(0);
         sheet.autoSizeColumn(1);
@@ -102,8 +102,8 @@ public class POC_ExcelExportUtil {
         validation = dvHelper.createValidation(dvConstraint, addressList);
         sheet.addValidationData(validation);
 
-        // HIDE THE 'LISTSHEET' SHEET
-        workbook.setSheetHidden(0, true);
+        // HIDE THE 'DataSheet' SHEET
+        // workbook.setSheetHidden(0, true);
 
         // SET 'SMART PMWB' SHEET AS ACTIVE
         workbook.setActiveSheet(1);
