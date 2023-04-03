@@ -1,5 +1,8 @@
 package com.samiach.exporttoexceldemo.utility;
 
+import com.samiach.exporttoexceldemo.model.POC.Milestone;
+import com.samiach.exporttoexceldemo.model.POC.Release;
+import com.samiach.exporttoexceldemo.model.POC.Submilestone;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
@@ -18,9 +21,9 @@ import java.util.Map;
 public class POC_ExcelExportUtil {
 
     private XSSFWorkbook workbook;
-    private Map<String, String[]> data;
+    private Map<String, Release> data;
 
-    public POC_ExcelExportUtil(Map<String, String[]> data) {
+    public POC_ExcelExportUtil(Map<String, Release> data) {
         this.data = data;
         workbook = new XSSFWorkbook();
     }
@@ -37,29 +40,27 @@ public class POC_ExcelExportUtil {
         int c = 0;
 
         // POPULATE THE DATA FOR HIDDEN SHEET
-        for (String release : data.keySet()) {
-            System.out.println("Release : " + release);
+        for (String key : data.keySet()) {
+            Release release = data.get(key);
 
             int r = 0;
 
             row = sheet.getRow(r);
             if (row == null) row = sheet.createRow(r);
             r++;
-            row.createCell(c).setCellValue(release);
+            row.createCell(c).setCellValue(release.getRelease());
 
-            String[] milestones_of_release = data.get(release);
-            for (String milestone : milestones_of_release) {
-                System.out.println("Milestone : " + milestone);
+            for (Milestone milestone : release.getMilestones()) {
                 row = sheet.getRow(r);
                 if (row == null) row = sheet.createRow(r);
                 r++;
-                row.createCell(c).setCellValue(milestone);
+                row.createCell(c).setCellValue(milestone.getMilestone());
             }
 
             // CREATE NAMES FOR THE 'MILESTONE' LIST CONSTRAINTS, EACH NAMED FROM THE CURRENT KEY
             colLetter = CellReference.convertNumToColString(c);
             namedRange = workbook.createName();
-            namedRange.setNameName(release);
+            namedRange.setNameName(release.getRelease());
             reference = "DataSheet!$" + colLetter + "$2:$" + colLetter + "$" + r;
             System.out.println("Reference 1 : " + reference);
             namedRange.setRefersToFormula(reference);
@@ -74,7 +75,7 @@ public class POC_ExcelExportUtil {
         System.out.println("\nReference 2 : " + reference);
         namedRange.setRefersToFormula(reference);
 
-        // UNSELECT THAT SHEET BECUASE WE WILL HIDE IT LATER
+        // UNSELECT THAT SHEET BECAUSE WE WILL HIDE IT LATER
         sheet.setSelected(false);
 
 
@@ -89,6 +90,7 @@ public class POC_ExcelExportUtil {
 
         // DATA VALIDATIONS
         DataValidationHelper dvHelper = sheet.getDataValidationHelper();
+        int lastRow = workbook.getSpreadsheetVersion().getLastRowIndex();
 
         // DATA VALIDATIONS FOR 'RELEASE' RECORDS IN A2
         DataValidationConstraint dvConstraint = dvHelper.createFormulaListConstraint("Releases");
