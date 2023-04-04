@@ -8,6 +8,7 @@ import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFDataValidationHelper;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -29,7 +30,74 @@ public class POC_ExcelExportUtil {
     }
 
     public void exportDataToExcel(HttpServletResponse response) throws IOException {
-        // HIDDEN SHEET (FOR LIST VALUES)
+        createDataSheet01();
+        createDataSheet02();
+
+        // VISIBLE SHEET
+        Sheet sheet = workbook.createSheet("SMART PMWB");
+        CellStyle style = workbook.createCellStyle();
+        XSSFFont font = workbook.createFont();
+        font.setBold(true);
+        font.setFontHeight(14);
+        style.setFont(font);
+
+        Cell cell00 = sheet.createRow(0).createCell(0);
+        cell00.setCellValue("Release");
+        cell00.setCellStyle(style);
+
+        Cell cell01 = sheet.getRow(0).createCell(1);
+        cell01.setCellValue("Milestone");
+        cell01.setCellStyle(style);
+
+        Cell cell02 = sheet.getRow(0).createCell(2);
+        cell02.setCellValue("Sub Milestone");
+        cell02.setCellStyle(style);
+
+        sheet.autoSizeColumn(0);
+        sheet.autoSizeColumn(1);
+        sheet.autoSizeColumn(2);
+
+        sheet.setActiveCell(new CellAddress("A2"));
+
+        // DATA VALIDATIONS
+        DataValidationHelper dvHelper = sheet.getDataValidationHelper();
+        int lastRow = workbook.getSpreadsheetVersion().getLastRowIndex();
+
+        // DATA VALIDATIONS FOR 'RELEASE' RECORDS IN A2
+        DataValidationConstraint dvConstraint = dvHelper.createFormulaListConstraint("Releases");
+        CellRangeAddressList addressList = new CellRangeAddressList(1, 1, 0, 0);
+        DataValidation validation = dvHelper.createValidation(dvConstraint, addressList);
+        sheet.addValidationData(validation);
+
+        // DATA VALIDATIONS FOR 'MILESTONE' RECORDS OF THE SELECTED RELEASE IN B2
+        // dvConstraint = dvHelper.createFormulaListConstraint("INDIRECT($A$2)");
+        dvConstraint = dvHelper.createFormulaListConstraint("INDIRECT(SUBSTITUTE(A2,\" \",\"\"))");
+        addressList = new CellRangeAddressList(1, 1, 1, 1);
+        validation = dvHelper.createValidation(dvConstraint, addressList);
+        sheet.addValidationData(validation);
+
+        // DATA VALIDATIONS FOR 'SUBMILESTONE' RECORDS OF THE SELECTED MILESTONE IN C2
+        // dvConstraint = dvHelper.createFormulaListConstraint("INDIRECT($A$2)");
+        dvConstraint = dvHelper.createFormulaListConstraint("INDIRECT(SUBSTITUTE(B2,\" \",\"\"))");
+        addressList = new CellRangeAddressList(1, 1, 2, 2);
+        validation = dvHelper.createValidation(dvConstraint, addressList);
+        sheet.addValidationData(validation);
+
+        // HIDE THE 'DataSheet' SHEET
+        workbook.setSheetHidden(0, true);
+        workbook.setSheetHidden(1, true);
+
+        // SET 'SMART PMWB' SHEET AS ACTIVE
+        workbook.setActiveSheet(2);
+
+        ServletOutputStream outputStream = response.getOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+        outputStream.close();
+    }
+
+    public void createDataSheet01() {
+        // HIDDEN SHEET 01 (TO POPULATE 'RELEASE' & 'MILESTONE' LIST VALUES)
         Sheet sheet = workbook.createSheet("DataSheet");
 
         Row row;
@@ -39,7 +107,7 @@ public class POC_ExcelExportUtil {
 
         int c = 0;
 
-        // POPULATE THE DATA FOR HIDDEN SHEET
+        // POPULATE THE DATA FOR HIDDEN SHEET 01
         for (String key : data.keySet()) {
             Release release = data.get(key);
 
@@ -57,63 +125,75 @@ public class POC_ExcelExportUtil {
                 row.createCell(c).setCellValue(milestone.getMilestone());
             }
 
-            // CREATE NAMES FOR THE 'MILESTONE' LIST CONSTRAINTS, EACH NAMED FROM THE CURRENT KEY
+            // CREATE NAMED_RANGES FOR THE 'MILESTONE' LIST CONSTRAINTS, EACH NAMED FROM THE CURRENT KEY
             colLetter = CellReference.convertNumToColString(c);
             namedRange = workbook.createName();
             namedRange.setNameName(release.getRelease());
             reference = "DataSheet!$" + colLetter + "$2:$" + colLetter + "$" + r;
-            System.out.println("Reference 1 : " + reference);
             namedRange.setRefersToFormula(reference);
             c++;
+        }
+
+        // CREATE NAMED_RANGES FOR THE 'RELEASE' LIST CONSTRAINT
+        colLetter = CellReference.convertNumToColString((c - 1));
+        namedRange = workbook.createName();
+        namedRange.setNameName("Releases");
+        reference = "DataSheet!$A$1:$" + colLetter + "$1";
+        namedRange.setRefersToFormula(reference);
+
+        // UNSELECT THAT SHEET BECAUSE WE WILL HIDE IT LATER
+        sheet.setSelected(false);
+    }
+
+    public void createDataSheet02() {
+        // HIDDEN SHEET 02 (TO POPULATE 'MILESTONE' & 'SUBMILESTONE' LIST VALUES)
+        Sheet sheet = workbook.createSheet("DataSheet_01");
+
+        Row row;
+        Name namedRange;
+        String colLetter;
+        String reference;
+
+        int c = 0;
+
+        // POPULATE THE DATA FOR HIDDEN SHEET 02
+        for (String key : data.keySet()) {
+            Release release = data.get(key);
+
+            for (Milestone milestone : release.getMilestones()) {
+                int r = 0;
+
+                row = sheet.getRow(r);
+                if (row == null) row = sheet.createRow(r);
+                r++;
+                row.createCell(c).setCellValue(milestone.getMilestone());
+
+                for (Submilestone submilestone : milestone.getSubmilestones()) {
+                    row = sheet.getRow(r);
+                    if (row == null) row = sheet.createRow(r);
+                    r++;
+                    row.createCell(c).setCellValue(submilestone.getSubmilestone());
+                }
+
+                // CREATE NAMED_RANGES FOR THE 'SUBMILESTONE' LIST CONSTRAINTS, EACH NAMED FROM THE CURRENT KEY
+                colLetter = CellReference.convertNumToColString(c);
+                namedRange = workbook.createName();
+                namedRange.setNameName(milestone.getMilestone());
+                reference = "DataSheet_01!$" + colLetter + "$2:$" + colLetter + "$" + r;
+                namedRange.setRefersToFormula(reference);
+                c++;
+            }
         }
 
         // CREATE NAME FOR 'RELEASE' LIST CONSTRAINT
         colLetter = CellReference.convertNumToColString((c - 1));
         namedRange = workbook.createName();
-        namedRange.setNameName("Releases");
-        reference = "DataSheet!$A$1:$" + colLetter + "$1";
-        System.out.println("\nReference 2 : " + reference);
+        namedRange.setNameName("Milestones");
+        reference = "DataSheet_01!$A$1:$" + colLetter + "$1";
         namedRange.setRefersToFormula(reference);
 
         // UNSELECT THAT SHEET BECAUSE WE WILL HIDE IT LATER
         sheet.setSelected(false);
-
-
-        // VISIBLE SHEET
-        sheet = workbook.createSheet("SMART PMWB");
-        sheet.createRow(0).createCell(0).setCellValue("Release");
-        sheet.getRow(0).createCell(1).setCellValue("Milestone");
-        sheet.getRow(0).createCell(2).setCellValue("Sub Milestone");
-        sheet.setActiveCell(new CellAddress("A2"));
-        sheet.autoSizeColumn(0);
-        sheet.autoSizeColumn(1);
-
-        // DATA VALIDATIONS
-        DataValidationHelper dvHelper = sheet.getDataValidationHelper();
-        int lastRow = workbook.getSpreadsheetVersion().getLastRowIndex();
-
-        // DATA VALIDATIONS FOR 'RELEASE' RECORDS IN A2
-        DataValidationConstraint dvConstraint = dvHelper.createFormulaListConstraint("Releases");
-        CellRangeAddressList addressList = new CellRangeAddressList(1, 1, 0, 0);
-        DataValidation validation = dvHelper.createValidation(dvConstraint, addressList);
-        sheet.addValidationData(validation);
-
-        // DATA VALIDATIONS FOR 'MILESTONE' RECORDS OF THE SELECTED RELEASE IN B2
-        dvConstraint = dvHelper.createFormulaListConstraint("INDIRECT($A$2)");
-        addressList = new CellRangeAddressList(1, 1, 1, 1);
-        validation = dvHelper.createValidation(dvConstraint, addressList);
-        sheet.addValidationData(validation);
-
-        // HIDE THE 'DataSheet' SHEET
-        // workbook.setSheetHidden(0, true);
-
-        // SET 'SMART PMWB' SHEET AS ACTIVE
-        workbook.setActiveSheet(1);
-
-        ServletOutputStream outputStream = response.getOutputStream();
-        workbook.write(outputStream);
-        workbook.close();
-        outputStream.close();
     }
 
     public void testExport() throws IOException {

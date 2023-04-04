@@ -23,7 +23,7 @@ public class POC_Controller {
 
         response.setContentType("application/octet-stream");
         String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=Release_Milestone_Submilestone.xlsx";
+        String headerValue = "attachment; filename=Release_Milestone_Submilestone_" + System.currentTimeMillis() + ".xlsx";
 
         response.setHeader(headerKey, headerValue);
         pocService.exportReleaseMilestoneSubmilestoneToExcel(response);
