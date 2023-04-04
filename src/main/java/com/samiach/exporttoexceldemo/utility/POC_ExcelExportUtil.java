@@ -65,21 +65,21 @@ public class POC_ExcelExportUtil {
 
         // DATA VALIDATIONS FOR 'RELEASE' RECORDS IN A2
         DataValidationConstraint dvConstraint = dvHelper.createFormulaListConstraint("Releases");
-        CellRangeAddressList addressList = new CellRangeAddressList(1, 1, 0, 0);
+        CellRangeAddressList addressList = new CellRangeAddressList(1, lastRow, 0, 0);
         DataValidation validation = dvHelper.createValidation(dvConstraint, addressList);
         sheet.addValidationData(validation);
 
         // DATA VALIDATIONS FOR 'MILESTONE' RECORDS OF THE SELECTED RELEASE IN B2
         // dvConstraint = dvHelper.createFormulaListConstraint("INDIRECT($A$2)");
         dvConstraint = dvHelper.createFormulaListConstraint("INDIRECT(SUBSTITUTE(A2,\" \",\"\"))");
-        addressList = new CellRangeAddressList(1, 1, 1, 1);
+        addressList = new CellRangeAddressList(1, lastRow, 1, 1);
         validation = dvHelper.createValidation(dvConstraint, addressList);
         sheet.addValidationData(validation);
 
         // DATA VALIDATIONS FOR 'SUBMILESTONE' RECORDS OF THE SELECTED MILESTONE IN C2
         // dvConstraint = dvHelper.createFormulaListConstraint("INDIRECT($A$2)");
         dvConstraint = dvHelper.createFormulaListConstraint("INDIRECT(SUBSTITUTE(B2,\" \",\"\"))");
-        addressList = new CellRangeAddressList(1, 1, 2, 2);
+        addressList = new CellRangeAddressList(1, lastRow, 2, 2);
         validation = dvHelper.createValidation(dvConstraint, addressList);
         sheet.addValidationData(validation);
 
